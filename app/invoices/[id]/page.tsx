@@ -20,6 +20,8 @@ type InvoiceDetail = {
   tax: string;
   discount: string;
   total: string;
+  total_cost: string;
+  total_profit: string;
   notes: string | null;
   client_id: string;
   workspace_id: string;
@@ -184,6 +186,10 @@ export default function InvoiceDetailPage() {
               <span className="font-semibold text-slate-900">Subtotal:</span> {invoice.subtotal}
             </div>
             <div>
+              <span className="font-semibold text-slate-900">Total Harga Pokok:</span> 
+              <span className="ml-2 text-red-600">{invoice.total_cost}</span>
+            </div>
+            <div>
               <span className="font-semibold text-slate-900">Pajak:</span> {invoice.tax}
             </div>
             <div>
@@ -191,6 +197,10 @@ export default function InvoiceDetailPage() {
             </div>
             <div>
               <span className="font-semibold text-slate-900">Total:</span> {invoice.total}
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-200">
+              <span className="font-semibold text-green-700">💰 Keuntungan:</span> 
+              <span className="ml-2 text-lg font-bold text-green-600">{invoice.total_profit}</span>
             </div>
             {invoice.notes && (
               <div>

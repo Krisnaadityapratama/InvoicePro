@@ -87,9 +87,9 @@ export default function ClientsPage() {
           <h1 className="mt-2 text-3xl font-semibold text-slate-950">Kelola Client Anda</h1>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/dashboard" className="rounded-full border border-slate-300 px-5 py-3 text-slate-900 hover:bg-slate-100">
+          {/* <Link href="/dashboard" className="rounded-full border border-slate-300 px-5 py-3 text-slate-900 hover:bg-slate-100">
             Kembali ke Dashboard
-          </Link>
+          </Link> */}
           <Link href="/clients/new" className="rounded-full bg-brand-700 px-5 py-3 text-white hover:bg-brand-800">
             Tambah Client
           </Link>

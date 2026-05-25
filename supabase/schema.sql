@@ -57,6 +57,9 @@ create table invoices (
   tax numeric(12,2) not null default 0,
   discount numeric(12,2) not null default 0,
   total numeric(12,2) not null default 0,
+  total_cost numeric(12,2) not null default 0,
+  total_profit numeric(12,2) generated always as (total - tax - total_cost) stored,
+  profit_margin numeric(5,2) generated always as (case when (total - tax) > 0 then ((total - tax - total_cost) / (total - tax) * 100) else 0 end) stored,
   notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -68,6 +71,8 @@ create table invoice_items (
   description text not null,
   quantity integer not null default 1,
   unit_price numeric(12,2) not null default 0,
+  cost_price numeric(12,2) not null default 0,
   total numeric(12,2) generated always as (quantity * unit_price) stored,
+  profit numeric(12,2) generated always as (quantity * (unit_price - cost_price)) stored,
   position integer not null default 0
 );

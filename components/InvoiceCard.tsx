@@ -111,10 +111,15 @@ export function InvoiceCard({
 
       {/* Total */}
 
-      <div className="mt-5">
+      <div className="mt-5 space-y-2">
         <p className="text-3xl font-bold text-slate-950">
           {invoice.total}
         </p>
+        {invoice.total_profit !== undefined && (
+          <p className="text-sm text-green-600 font-semibold">
+            💰 Profit: {invoice.total_profit}
+          </p>
+        )}
       </div>
 
       {/* Actions */}

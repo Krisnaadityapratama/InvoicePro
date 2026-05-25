@@ -47,6 +47,9 @@ export type Invoice = {
   client_id: string;
   client: string;
   total: string;
+  total_cost: string;
+  total_profit: string;
+  profit_margin: number;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | string;
   issue_date: string;
   due_date: string;
@@ -58,6 +61,8 @@ export type InvoiceItem = {
   description: string;
   quantity: number;
   unit_price: number;
+  cost_price: number;
   total: number;
+  profit: number;
   position: number;
 };

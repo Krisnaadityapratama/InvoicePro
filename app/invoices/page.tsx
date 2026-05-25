@@ -42,6 +42,9 @@ export default function InvoicesPage() {
           id,
           invoice_number,
           total,
+          total_cost,
+          total_profit,
+          profit_margin,
           status,
           issue_date,
           due_date,
@@ -59,6 +62,9 @@ export default function InvoicesPage() {
         client_id: inv.client_id,
         client: inv.clients?.name || 'Client tidak ditemukan',
         total: formatCurrency(Number(inv.total || 0)),
+        total_cost: formatCurrency(Number(inv.total_cost || 0)),
+        total_profit: formatCurrency(Number(inv.total_profit || 0)),
+        profit_margin: Number(inv.profit_margin || 0),
         status: inv.status,
         issue_date: inv.issue_date,
         due_date: inv.due_date,
@@ -142,12 +148,12 @@ export default function InvoicesPage() {
           <h1 className="mt-2 text-3xl font-semibold text-slate-950">Daftar Invoice</h1>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link 
+          {/* <Link 
             href="/dashboard" 
             className="rounded-full border border-slate-300 px-5 py-3 text-slate-900 hover:bg-slate-100"
           >
             Dashboard
-          </Link>
+          </Link> */}
           <Link 
             href="/invoices/new" 
             className="rounded-full bg-brand-700 px-5 py-3 text-white hover:bg-brand-800"

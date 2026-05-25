@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import type { Session } from '@supabase/supabase-js';
+
 import { supabase } from '../../lib/supabaseClient';
 import { ensureUserProfileAndWorkspace } from '../../lib/userSetup';
-import { InvoiceCard } from '../../components/InvoiceCard';
-import { ClientCard } from '../../components/ClientCard';
-import { WorkspaceCard } from '../../components/WorkspaceCard';
-import type { Workspace, Client, Invoice } from '../../lib/types';
-import type { Session } from '@supabase/supabase-js';
 
 type Summary = {
   workspaceCount: number;
@@ -16,7 +13,7 @@ type Summary = {
   invoiceCount: number;
   outstanding: number;
   paidRevenue: number;
-  overdueCount: number;
+  totalProfit: number;
   draftCount: number;
   paidCount: number;
 };
@@ -28,42 +25,40 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const defaultSummary: Summary = {
+  workspaceCount: 0,
+  clientCount: 0,
+  invoiceCount: 0,
+  outstanding: 0,
+  paidRevenue: 0,
+  totalProfit: 0,
+  draftCount: 0,
+  paidCount: 0,
+};
+
 export default function DashboardPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-
-  const [summary, setSummary] = useState<Summary>({
-    workspaceCount: 0,
-    clientCount: 0,
-    invoiceCount: 0,
-    outstanding: 0,
-    paidRevenue: 0,
-    overdueCount: 0,
-    draftCount: 0,
-    paidCount: 0,
-  });
-
   const [message, setMessage] = useState('');
+  const [summary, setSummary] = useState<Summary>(defaultSummary);
 
   useEffect(() => {
-    async function loadSession() {
-      const { data } = await supabase.auth.getSession();
+    async function init() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      setSession(data.session);
+      setSession(session);
 
-      if (data.session) {
-        await ensureUserProfileAndWorkspace(data.session);
-        await loadData(data.session);
+      if (session) {
+        await ensureUserProfileAndWorkspace(session);
+        await loadDashboard(session);
       }
 
       setLoading(false);
     }
 
-    loadSession();
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -71,22 +66,9 @@ export default function DashboardPage() {
 
         if (session) {
           await ensureUserProfileAndWorkspace(session);
-          await loadData(session);
+          await loadDashboard(session);
         } else {
-          setWorkspaces([]);
-          setClients([]);
-          setInvoices([]);
-
-          setSummary({
-            workspaceCount: 0,
-            clientCount: 0,
-            invoiceCount: 0,
-            outstanding: 0,
-            paidRevenue: 0,
-            overdueCount: 0,
-            draftCount: 0,
-            paidCount: 0,
-          });
+          setSummary(defaultSummary);
         }
       }
     );
@@ -96,131 +78,111 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const loadData = async (activeSession: Session) => {
-    const workspaceRes = await supabase
+  const loadDashboard = async (activeSession: Session) => {
+    setMessage('');
+
+    const workspaceQuery = supabase
       .from('workspaces')
-      .select('*')
-      .eq('owner_id', activeSession.user.id)
-      .order('created_at', { ascending: false });
+      .select('id', {
+        count: 'exact',
+      })
+      .eq('owner_id', activeSession.user.id);
 
-    const workspaceIds = (workspaceRes.data ?? []).map(
-      (workspace) => workspace.id
-    );
+    const { data: workspaceData, error: workspaceError } =
+      await workspaceQuery;
 
-    const [clientRes, invoiceRes, outstandingRes] =
-      await Promise.all([
-        workspaceIds.length
-          ? supabase
-              .from('clients')
-              .select('*')
-              .in('workspace_id', workspaceIds)
-              .order('created_at', { ascending: false })
-              .limit(5)
-          : { data: [], error: null },
-
-        workspaceIds.length
-          ? supabase
-              .from('invoices')
-              .select(
-                `
-                id,
-                invoice_number,
-                client_id,
-                total,
-                status,
-                issue_date,
-                due_date
-              `
-              )
-              .in('workspace_id', workspaceIds)
-              .order('created_at', { ascending: false })
-          : { data: [], error: null },
-
-        workspaceIds.length
-          ? supabase
-              .from('invoices')
-              .select('total')
-              .neq('status', 'Paid')
-              .in('workspace_id', workspaceIds)
-          : { data: [], error: null },
-      ]);
-
-    if (
-      workspaceRes.error ||
-      clientRes.error ||
-      invoiceRes.error ||
-      outstandingRes.error
-    ) {
-      setMessage(
-        'Gagal memuat data. Pastikan session Supabase dan policy RLS sudah benar.'
-      );
-
+    if (workspaceError) {
+      setMessage('Gagal memuat workspace dashboard.');
       return;
     }
 
-    const clientMap = (
-      clientRes.data ?? []
-    ).reduce<Record<string, Client>>((acc, client) => {
-      acc[client.id] = client;
-      return acc;
-    }, {});
-
-    setWorkspaces(workspaceRes.data ?? []);
-    setClients(clientRes.data ?? []);
-
-    setInvoices(
-      (invoiceRes.data ?? []).slice(0, 5).map((invoice) => ({
-        id: invoice.id,
-        invoice_number: invoice.invoice_number,
-        client_id: invoice.client_id,
-        client:
-          clientMap[invoice.client_id]?.name ??
-          'Client tidak ditemukan',
-        total: formatCurrency(Number(invoice.total)),
-        status: invoice.status,
-        issue_date: invoice.issue_date,
-        due_date: invoice.due_date,
-      }))
+    const workspaceIds = (workspaceData ?? []).map(
+      (workspace) => workspace.id
     );
 
-    const allInvoices = invoiceRes.data ?? [];
+    if (!workspaceIds.length) {
+      setSummary(defaultSummary);
+      return;
+    }
 
-    const paidRevenue = allInvoices
-      .filter((invoice) => invoice.status === 'Paid')
-      .reduce(
-        (sum, invoice) => sum + Number(invoice.total),
-        0
-      );
+    const [
+      clientCountRes,
+      invoiceCountRes,
+      invoiceSummaryRes,
+    ] = await Promise.all([
+      supabase
+        .from('clients')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .in('workspace_id', workspaceIds),
 
-    const overdueCount = allInvoices.filter((invoice) => {
-      return (
-        invoice.status !== 'Paid' &&
-        new Date(invoice.due_date) < new Date()
-      );
-    }).length;
+      supabase
+        .from('invoices')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .in('workspace_id', workspaceIds),
 
-    const draftCount = allInvoices.filter(
-      (invoice) => invoice.status === 'Draft'
-    ).length;
+      supabase
+        .from('invoices')
+        .select(
+          `
+            total,
+            total_cost,
+            total_profit,
+            status
+          `
+        )
+        .in('workspace_id', workspaceIds),
+    ]);
 
-    const paidCount = allInvoices.filter(
-      (invoice) => invoice.status === 'Paid'
-    ).length;
+    if (
+      clientCountRes.error ||
+      invoiceCountRes.error ||
+      invoiceSummaryRes.error
+    ) {
+      setMessage('Gagal memuat statistik dashboard.');
+      return;
+    }
+
+    const invoices = invoiceSummaryRes.data ?? [];
+
+    let paidRevenue = 0;
+    let totalProfit = 0;
+    let outstanding = 0;
+    let draftCount = 0;
+    let paidCount = 0;
+
+    for (const invoice of invoices) {
+      const total = Number(invoice.total || 0);
+      const totalCost = Number(invoice.total_cost || 0);
+      const profit = Number(invoice.total_profit || 0);
+
+      if (invoice.status === 'Paid') {
+        paidRevenue += total;
+        paidCount += 1;
+
+        totalProfit +=
+          profit > 0 ? profit : total - totalCost;
+      } else {
+        outstanding += total;
+      }
+
+      if (invoice.status === 'Draft') {
+        draftCount += 1;
+      }
+    }
 
     setSummary({
-      workspaceCount: workspaceRes.data?.length ?? 0,
-      clientCount: clientRes.data?.length ?? 0,
-      invoiceCount: invoiceRes.data?.length ?? 0,
-
-      outstanding: (
-        outstandingRes.data ?? []
-      ).reduce(
-        (sum, row) => sum + Number(row.total),
-        0
-      ),
-
+      workspaceCount: workspaceData?.length ?? 0,
+      clientCount: clientCountRes.count ?? 0,
+      invoiceCount: invoiceCountRes.count ?? 0,
+      outstanding,
       paidRevenue,
-      overdueCount,
+      totalProfit,
       draftCount,
       paidCount,
     });
@@ -302,12 +264,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* KPI Cards */}
-
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm text-slate-500">
-            Total Revenue
+            Revenue
           </p>
 
           <h2 className="mt-3 text-3xl font-bold text-emerald-600">
@@ -315,7 +275,21 @@ export default function DashboardPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Total invoice yang sudah dibayar
+            Total invoice dibayar
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Profit
+          </p>
+
+          <h2 className="mt-3 text-3xl font-bold text-green-600">
+            {formatCurrency(summary.totalProfit)}
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Total keuntungan
           </p>
         </div>
 
@@ -343,21 +317,49 @@ export default function DashboardPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Invoice telah lunas
+            Invoice lunas
           </p>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm text-slate-500">
-            Overdue Invoice
+            Draft Invoice
           </p>
 
-          <h2 className="mt-3 text-3xl font-bold text-red-600">
-            {summary.overdueCount}
+          <h2 className="mt-3 text-3xl font-bold text-yellow-500">
+            {summary.draftCount}
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Invoice melewati jatuh tempo
+            Invoice draft
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Client
+          </p>
+
+          <h2 className="mt-3 text-3xl font-bold text-slate-900">
+            {summary.clientCount}
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Total client
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Invoice
+          </p>
+
+          <h2 className="mt-3 text-3xl font-bold text-indigo-600">
+            {summary.invoiceCount}
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Total invoice
           </p>
         </div>
 
@@ -374,116 +376,7 @@ export default function DashboardPage() {
             Workspace aktif
           </p>
         </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Total Client
-          </p>
-
-          <h2 className="mt-3 text-3xl font-bold text-slate-900">
-            {summary.clientCount}
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Client terdaftar
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Total Invoice
-          </p>
-
-          <h2 className="mt-3 text-3xl font-bold text-indigo-600">
-            {summary.invoiceCount}
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Invoice keseluruhan
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Draft Invoice
-          </p>
-
-          <h2 className="mt-3 text-3xl font-bold text-yellow-500">
-            {summary.draftCount}
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Invoice masih draft
-          </p>
-        </div>
       </div>
-
-      {/* Content */}
-
-      <section className="mt-10 grid gap-6 lg:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-black">
-            Workspace Aktif
-          </h3>
-
-          <div className="mt-4 space-y-4">
-            {workspaces.length > 0 ? (
-              workspaces.map((workspace) => (
-                <WorkspaceCard
-                  key={workspace.id}
-                  workspace={workspace}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">
-                Belum ada workspace.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-black">
-            Client Terbaru
-          </h3>
-
-          <div className="mt-4 space-y-4">
-            {clients.length > 0 ? (
-              clients.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">
-                Belum ada client.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-black">
-            Invoice Terbaru
-          </h3>
-
-          <div className="mt-4 space-y-4">
-            {invoices.length > 0 ? (
-              invoices.map((invoice) => (
-                <InvoiceCard
-                  key={invoice.id}
-                  invoice={invoice}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">
-                Belum ada invoice.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
