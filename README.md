@@ -26,6 +26,42 @@ InvoicePro adalah aplikasi web yang dirancang khusus untuk **entrepreneur, resel
 
 ---
 
+## 🎨 Screenshots
+
+### **1. Landing Page**
+![Landing Page](./img/landingpage.png)
+*Halaman awal dengan informasi aplikasi dan call-to-action*
+
+### **2. Dashboard**
+![Dashboard](./img/dashboard.png)
+*Dashboard dengan ringkasan invoice, statistik, dan quick actions*
+
+### **3. Workspace Management**
+![Workspace](./img/workspace.jpg)
+*Kelola multiple bisnis dalam satu akun dengan konfigurasi custom*
+
+### **4. Client Management**
+![Client](./img/client.jpg)
+*List dan kelola semua klien Anda dengan detail lengkap*
+
+### **5. Invoice List**
+![Invoice](./img/invoice.jpg)
+*Daftar invoice dengan status, filter, dan quick actions*
+
+### **6. Create/Edit Invoice** ⭐
+![Add Invoice](./img/addinvoice.png)
+*Form invoice dengan 4 input field per item untuk profit tracking:*
+- *Deskripsi*
+- *Jumlah (Quantity)*
+- *Harga Jual (Unit Price)*
+- *Harga Pokok (Cost Price) - FITUR BARU*
+
+### **7. Invoice PDF Export**
+![Invoice PDF](./img/pdf.png)
+*Export invoice ke format PDF profesional dengan informasi workspace, klien, dan detail perhitungan profit*
+
+---
+
 ## ✨ Fitur Lengkap
 
 ### 1. **🔐 Autentikasi & Profil Pengguna**
@@ -480,42 +516,6 @@ System otomatis hitung:
 - Total Profit: Rp 1.200.000
 - Profit Margin: 60%
 ```
-
----
-
-## 🎨 Screenshots
-
-### **1. Landing Page**
-![Landing Page](./img/landingpage.png)
-*Halaman awal dengan informasi aplikasi dan call-to-action*
-
-### **2. Dashboard**
-![Dashboard](./img/dashboard.png)
-*Dashboard dengan ringkasan invoice, statistik, dan quick actions*
-
-### **3. Workspace Management**
-![Workspace](./img/workspace.png)
-*Kelola multiple bisnis dalam satu akun dengan konfigurasi custom*
-
-### **4. Client Management**
-![Client](./img/client.png)
-*List dan kelola semua klien Anda dengan detail lengkap*
-
-### **5. Invoice List**
-![Invoice](./img/invoice.png)
-*Daftar invoice dengan status, filter, dan quick actions*
-
-### **6. Create/Edit Invoice** ⭐
-![Add Invoice](./img/addinvoice.png)
-*Form invoice dengan 4 input field per item untuk profit tracking:*
-- *Deskripsi*
-- *Jumlah (Quantity)*
-- *Harga Jual (Unit Price)*
-- *Harga Pokok (Cost Price) - FITUR BARU*
-
-### **7. Invoice PDF Export**
-![Invoice PDF](./img/pdf.png)
-*Export invoice ke format PDF profesional dengan informasi workspace, klien, dan detail perhitungan profit*
 
 ---
 
