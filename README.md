@@ -275,7 +275,7 @@ Aplikasi akan berjalan di: **http://localhost:3000**
 ### **Langkah Pertama Setelah Setup**
 
 1. ✅ Buka http://localhost:3000
-2. 📝 **Register** akun baru
+2. 📝 **Register** akun baru → Lihat **Cara Membuat Akun** di bawah
 3. 👤 Lengkapi **Profile** Anda
 4. 🏢 Buat **Workspace** pertama (bisnis Anda)
 5. 👥 Tambah **Klien** pertama
@@ -283,6 +283,34 @@ Aplikasi akan berjalan di: **http://localhost:3000**
 7. 💰 Masukkan harga jual dan harga pokok
 8. 📊 Lihat profit calculation otomatis
 9. 📤 Export ke PDF
+
+### **Cara Membuat Akun**
+
+#### **Opsi 1: Via Aplikasi (Recommended)**
+
+1. Buka http://localhost:3000
+2. Klik tombol **"Daftar"** di navigation bar (atas kanan)
+3. Isi form register:
+   - **Email**: Masukkan email Anda
+   - **Password**: Minimal 6 karakter
+4. Klik **"Sign Up"**
+5. ✅ Akun berhasil dibuat, langsung bisa login
+
+#### **Opsi 2: Via Supabase Console (Manual)**
+
+Jika ingin membuat akun langsung di Supabase tanpa melalui aplikasi:
+
+1. Buka **Supabase Dashboard** → pilih project InvoicePro
+2. Masuk ke **Auth → Users**
+3. Klik **"Create New User"**
+4. Isi form:
+   - **Email**: Email akun yang ingin dibuat
+   - **Password**: Password minimal 6 karakter
+   - **Auto confirm user**: Centang ✓ (agar langsung bisa login)
+5. Klik **"Create User"**
+6. ✅ Akun berhasil dibuat, bisa langsung login di aplikasi
+
+**Catatan:** Saat pertama login, Anda akan diminta melengkapi profile (nama, telepon, dll).
 
 ---
 

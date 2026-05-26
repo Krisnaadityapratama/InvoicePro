@@ -56,9 +56,9 @@ export function Header() {
               <Link href="/login" className="rounded-full border border-slate-300 px-4 py-2 text-sm text-slate-900 hover:bg-slate-100">
                 Login
               </Link>
-              {/* <Link href="/register" className="rounded-full bg-brand-700 px-4 py-2 text-sm text-white hover:bg-brand-800">
+              <Link href="/register" className="rounded-full bg-brand-700 px-4 py-2 text-sm text-white hover:bg-brand-800">
                 Daftar
-              </Link> */}
+              </Link>
             </>
           )}
         </div>
