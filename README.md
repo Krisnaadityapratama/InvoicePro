@@ -184,17 +184,16 @@ npm install tailwindcss postcss autoprefixer
 
 ## ⚙️ Konfigurasi Environment Variables
 
-### **Step 1: Rename File Environment**
-File `.env.remove` sudah disediakan di root project. Copy dan rename:
+### **Step 1: Setup Environment File**
+
+Buat file `.env` (root project) dengan copy dari `.env.example`:
 
 ```bash
 # Windows (PowerShell)
-Copy-Item .env.remove .env.local
-
-# atau Manual: Duplikasi .env.remove menjadi .env.local
+Copy-Item .env.example .env
 ```
 
-**Atau buat file `.env.local`** (root project) dengan isi:
+**Atau buat file `.env`** (root project) manual dengan isi:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -203,26 +202,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### **Step 2: Dapatkan Credentials dari Supabase**
 
 Lihat bagian **Setup Supabase** di bawah untuk mendapatkan URL dan API Key.
-
-### **Step 3: Update .gitignore**
-
-File `.gitignore` sudah dikonfigurasi untuk tidak push `.env*`:
-
-```
-# .gitignore
-.env
-.env.*
-```
-
-**Untuk mendistribusikan ke tim:**
-Gunakan `.env.example` (atau `.env.remove`):
-
-```bash
-cp .env.local .env.example
-git add .env.example
-git commit -m "Add env example"
-git push
-```
 
 ---
 
@@ -263,21 +242,11 @@ Supabase adalah backend platform yang menyimpan semua data aplikasi.
 
 **Tujuan RLS:** Memastikan setiap user hanya bisa akses data mereka sendiri.
 
-### **4. Setup Storage Bucket**
-
-Untuk menyimpan logo workspace dan avatar profile:
-
-1. Di Supabase Dashboard, masuk ke **Storage**
-2. Klik **"New Bucket"**
-3. Isi nama: `profile-logos`
-4. Pilih **Public** (agar logo bisa diakses langsung)
-5. Klik **"Create Bucket"**
-
-### **5. Ambil API Credentials**
+### **4. Ambil API Credentials**
 
 1. Di Supabase Dashboard, masuk ke **Settings → API**
-2. Copy **Project URL** → paste ke `NEXT_PUBLIC_SUPABASE_URL` di `.env.local`
-3. Copy **anon key** (bukan service role key) → paste ke `NEXT_PUBLIC_SUPABASE_ANON_KEY` di `.env.local`
+2. Copy **Project URL** → paste ke `NEXT_PUBLIC_SUPABASE_URL` di `.env`
+3. Copy **anon key** (bukan service role key) → paste ke `NEXT_PUBLIC_SUPABASE_ANON_KEY` di `.env`
 
 **Contoh:**
 ```env
@@ -285,7 +254,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://xyzabc.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M...
 ```
 
-### **6. Setup Email Authentication (Opsional)**
+### **5. Setup Email Authentication (Opsional)**
 
 1. Di Supabase, masuk ke **Auth → Providers**
 2. Pastikan **Email** enabled (default sudah on)
@@ -357,8 +326,7 @@ InvoicePro/
 │   └── appStore.ts                # Global app state
 ├── supabase/                      # Supabase config
 │   ├── schema.sql                 # Database schema
-│   ├── policies.sql               # RLS policies
-│   └── storage.md                 # Storage bucket setup
+│   └── policies.sql               # RLS policies
 ├── img/                           # Screenshots & images
 │   ├── landingpage.png            # Landing page screenshot
 │   ├── dashboard.png              # Dashboard screenshot
@@ -366,8 +334,8 @@ InvoicePro/
 │   ├── client.png                 # Client page screenshot
 │   ├── invoice.png                # Invoice page screenshot
 │   └── addinvoice.png             # Add invoice screenshot
-├── .env.local                     # Environment variables (JANGAN PUSH)
-├── .env.remove                    # Template env (copy ke .env.local)
+├── .env                          # Environment variables (JANGAN PUSH)
+├── .env.example                   # Template env untuk referensi tim
 ├── .gitignore                     # Git ignore rules
 ├── package.json                   # Dependencies
 ├── package-lock.json              # Dependency lock
@@ -517,6 +485,10 @@ System otomatis hitung:
 - *Harga Jual (Unit Price)*
 - *Harga Pokok (Cost Price) - FITUR BARU*
 
+### **7. Invoice PDF Export**
+![Invoice PDF](./img/pdf.png)
+*Export invoice ke format PDF profesional dengan informasi workspace, klien, dan detail perhitungan profit*
+
 ---
 
 ## 🚀 Build & Deployment
@@ -563,9 +535,10 @@ npx supabase stop
 
 ## ⚠️ Important Security Tips
 
-1. **JANGAN COMMIT `.env.local`** ke GitHub
+1. **JANGAN COMMIT `.env`** ke GitHub
    - Sudah aman di `.gitignore`
-   - Hanya commit `.env.example` / `.env.remove`
+   - Hanya commit `.env.example` untuk referensi tim
+   - Copy `.env.example` ke `.env` untuk development
 
 2. **Jangan share Supabase credentials** ke publik
    - `NEXT_PUBLIC_SUPABASE_URL` ok (publik)
@@ -585,9 +558,10 @@ npx supabase stop
 ## 🐛 Troubleshooting
 
 ### **Error: "Failed to fetch data from Supabase"**
-- ✅ Check `.env.local` sudah ada dan benar
+- ✅ Check `.env` sudah ada dan benar di root project
+- ✅ Copy `.env.example` ke `.env` jika belum ada
 - ✅ Check internet connection
-- ✅ Verify Supabase URL dan API key
+- ✅ Verify Supabase URL dan API key di `.env`
 
 ### **Error: "Cannot find module 'lucide-react'"**
 - ✅ Run: `npm install lucide-react`

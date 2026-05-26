@@ -12,9 +12,8 @@ out/
 .env
 .env.*.local
 
-# But DO commit env.example or env.remove for team reference
+# But DO commit env.example for team reference
 !.env.example
-!.env.remove
 
 # Logs
 npm-debug.log*
